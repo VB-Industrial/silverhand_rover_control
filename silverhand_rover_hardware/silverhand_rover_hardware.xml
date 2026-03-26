@@ -1,0 +1,9 @@
+<library path="silverhand_rover_hardware">
+  <class
+    name="silverhand_rover_hardware/SilverhandRoverSystem"
+    type="silverhand_rover_hardware::SilverhandRoverSystem"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>Stub-ready ros2_control system interface for the Silverhand rover.</description>
+  </class>
+</library>
+

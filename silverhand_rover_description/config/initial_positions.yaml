@@ -1,0 +1,8 @@
+initial_positions:
+  front_left_wheel_joint: 0.0
+  middle_left_wheel_joint: 0.0
+  rear_left_wheel_joint: 0.0
+  front_right_wheel_joint: 0.0
+  middle_right_wheel_joint: 0.0
+  rear_right_wheel_joint: 0.0
+

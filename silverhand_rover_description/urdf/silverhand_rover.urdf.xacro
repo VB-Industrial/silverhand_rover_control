@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="silverhand_rover">
+  <xacro:arg
+    name="initial_positions_file"
+    default="$(find silverhand_rover_description)/config/initial_positions.yaml"/>
+  <xacro:arg name="use_mock_hardware" default="true"/>
+  <xacro:arg name="can_iface" default="vcan1"/>
+  <xacro:arg name="node_id" default="110"/>
+  <xacro:arg name="queue_len" default="1000"/>
+
+  <xacro:include filename="$(find silverhand_rover_description)/urdf/silverhand_rover.urdf"/>
+  <xacro:include
+    filename="$(find silverhand_rover_description)/ros2_control/silverhand_rover.ros2_control.xacro"/>
+
+  <xacro:silverhand_rover_ros2_control
+    name="SilverhandRoverSystem"
+    initial_positions_file="$(arg initial_positions_file)"
+    use_mock_hardware="$(arg use_mock_hardware)"
+    can_iface="$(arg can_iface)"
+    node_id="$(arg node_id)"
+    queue_len="$(arg queue_len)"/>
+</robot>
+
