@@ -4,7 +4,7 @@ project(silverhand_rover_description)
 find_package(ament_cmake REQUIRED)
 
 install(
-  DIRECTORY config meshes ros2_control urdf
+  DIRECTORY config ros2_control urdf
   DESTINATION share/${PROJECT_NAME}
 )
 
