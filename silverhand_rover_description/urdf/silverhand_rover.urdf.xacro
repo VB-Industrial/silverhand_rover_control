@@ -8,9 +8,8 @@
   <xacro:arg name="node_id" default="110"/>
   <xacro:arg name="queue_len" default="1000"/>
 
-  <xacro:include filename="$(find silverhand_rover_description)/urdf/silverhand_rover.urdf"/>
-  <xacro:include
-    filename="$(find silverhand_rover_description)/ros2_control/silverhand_rover.ros2_control.xacro"/>
+  <xacro:include filename="$(find silverhand_rover_description)/urdf/silverhand_rover_model.urdf.xacro"/>
+  <xacro:include filename="$(find silverhand_rover_description)/ros2_control/silverhand_rover.ros2_control.xacro"/>
 
   <xacro:silverhand_rover_ros2_control
     name="SilverhandRoverSystem"
@@ -20,4 +19,3 @@
     node_id="$(arg node_id)"
     queue_len="$(arg queue_len)"/>
 </robot>
-
