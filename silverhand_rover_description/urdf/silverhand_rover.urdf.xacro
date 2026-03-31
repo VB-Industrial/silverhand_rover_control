@@ -8,6 +8,9 @@
   <xacro:arg name="node_id" default="110"/>
   <xacro:arg name="queue_len" default="1000"/>
 
+  <!-- Base rover geometry and visuals come from the standalone
+       silverhand_rover_model package. This wrapper only appends
+       ros2_control-specific content. -->
   <xacro:include filename="$(find silverhand_rover_model)/urdf/silverhand_rover.urdf.xacro"/>
   <xacro:include filename="$(find silverhand_rover_description)/ros2_control/silverhand_rover.ros2_control.xacro"/>
 

@@ -3,7 +3,7 @@
 <package format="3">
   <name>silverhand_rover_description</name>
   <version>0.1.0</version>
-  <description>Temporary Silverhand rover description and ros2_control xacro files.</description>
+  <description>Silverhand rover ros2_control wrapper that extends silverhand_rover_model.</description>
 
   <maintainer email="todo@example.com">Silverhand Team</maintainer>
   <license>BSD-3-Clause</license>

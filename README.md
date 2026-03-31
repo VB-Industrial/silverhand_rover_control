@@ -1,11 +1,14 @@
 # silverhand_rover_control
 
-ROS 2 Jazzy workspace for the Silverhand rover lower and middle layers.
+ROS 2 Jazzy stack for the Silverhand rover control layer.
 
 Packages:
-- `silverhand_rover_description`
-- `silverhand_rover_hardware`
-- `silverhand_rover_bringup`
+- `silverhand_rover_description` - thin wrapper over `silverhand_rover_model` that adds `ros2_control`
+- `silverhand_rover_hardware` - hardware plugin for mock and future real rover backend
+- `silverhand_rover_bringup` - launch files and controller configuration
+
+This repository does not own the visual/kinematic rover model itself.
+The base model lives in the separate `silverhand_rover_model` repository and is included from there.
 
 ## Prerequisites
 
@@ -23,10 +26,11 @@ sudo apt-get install -y \
 
 ## Clone
 
-Clone with submodules:
+Clone the control stack with submodules:
 
 ```bash
-git clone --recurse-submodules <repo-url>
+cd ~/silver_ws/src
+git clone --recurse-submodules <silverhand_rover_control_repo_url>
 ```
 
 If the repository is already cloned:
@@ -41,15 +45,23 @@ The real Cyphal backend is expected at:
 /home/r/silver_ws/src/silverhand_rover_control/third_party/libcxxcanard
 ```
 
-## Workspace Layout
-
-Standalone:
+Clone the rover model next to it in the same workspace:
 
 ```bash
+cd ~/silver_ws/src
+git clone https://github.com/VB-Industrial/silverhand_rover_model.git
+```
+
+## Workspace Layout
+
+Minimal shared workspace for bringup:
+
+```bash
+/home/r/silver_ws/src/silverhand_rover_model
 /home/r/silver_ws/src/silverhand_rover_control
 ```
 
-Shared workspace:
+Extended workspace:
 
 ```bash
 /home/r/silver_ws/src/silverhand_ros2
@@ -60,13 +72,14 @@ Shared workspace:
 ## Build
 
 ```bash
-cd /home/r/silver_ws
+cd ~/silver_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-up-to \
+  silverhand_rover_model \
   silverhand_rover_description \
   silverhand_rover_hardware \
   silverhand_rover_bringup
-source /home/r/silver_ws/install/setup.bash
+source ~/silver_ws/install/setup.bash
 ```
 
 ## Packages Check
@@ -105,7 +118,7 @@ ros2 launch silverhand_rover_bringup silverhand_rover_bringup.launch.py \
 
 ## Notes
 
-- The current rover URDF is intentionally temporary and uses a simple box base with six wheel joints.
+- `silverhand_rover_description` does not duplicate the rover model. It includes `silverhand_rover_model/urdf/silverhand_rover.urdf.xacro` and appends the `ros2_control` block.
 - The Cyphal transport is vendored as the `third_party/libcxxcanard` git submodule.
 - The real hardware plugin currently logs lifecycle, read, and write activity instead of talking to the rover electronics.
 - `diff_drive_controller` is used as the first integration step. A custom rover controller can replace it later without changing the package split.
