@@ -1,0 +1,32 @@
+#ifndef SILVERHAND_ROVER_CONTROL__VISIBILITY_CONTROL_H_
+#define SILVERHAND_ROVER_CONTROL__VISIBILITY_CONTROL_H_
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef __GNUC__
+    #define SILVERHAND_ROVER_CONTROL_EXPORT __attribute__ ((dllexport))
+    #define SILVERHAND_ROVER_CONTROL_IMPORT __attribute__ ((dllimport))
+  #else
+    #define SILVERHAND_ROVER_CONTROL_EXPORT __declspec(dllexport)
+    #define SILVERHAND_ROVER_CONTROL_IMPORT __declspec(dllimport)
+  #endif
+  #ifdef SILVERHAND_ROVER_CONTROL_BUILDING_DLL
+    #define SILVERHAND_ROVER_CONTROL_PUBLIC SILVERHAND_ROVER_CONTROL_EXPORT
+  #else
+    #define SILVERHAND_ROVER_CONTROL_PUBLIC SILVERHAND_ROVER_CONTROL_IMPORT
+  #endif
+  #define SILVERHAND_ROVER_CONTROL_PUBLIC_TYPE SILVERHAND_ROVER_CONTROL_PUBLIC
+  #define SILVERHAND_ROVER_CONTROL_LOCAL
+#else
+  #define SILVERHAND_ROVER_CONTROL_EXPORT __attribute__ ((visibility("default")))
+  #define SILVERHAND_ROVER_CONTROL_IMPORT
+  #if __GNUC__ >= 4
+    #define SILVERHAND_ROVER_CONTROL_PUBLIC __attribute__ ((visibility("default")))
+    #define SILVERHAND_ROVER_CONTROL_LOCAL  __attribute__ ((visibility("hidden")))
+  #else
+    #define SILVERHAND_ROVER_CONTROL_PUBLIC
+    #define SILVERHAND_ROVER_CONTROL_LOCAL
+  #endif
+  #define SILVERHAND_ROVER_CONTROL_PUBLIC_TYPE
+#endif
+
+#endif  // SILVERHAND_ROVER_CONTROL__VISIBILITY_CONTROL_H_

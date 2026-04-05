@@ -1,14 +1,16 @@
 # silverhand_rover_control
 
-ROS 2 Jazzy stack for the Silverhand rover control layer.
+ROS 2 Jazzy package for the Silverhand rover control layer.
 
-Packages:
-- `silverhand_rover_description` - thin wrapper over `silverhand_rover_model` that adds `ros2_control`
-- `silverhand_rover_hardware` - hardware plugin for mock and future real rover backend
-- `silverhand_rover_bringup` - launch files and controller configuration
+Package:
+- `silverhand_rover_control`
 
-This repository does not own the visual/kinematic rover model itself.
-The base model lives in the separate `silverhand_rover_model` repository and is included from there.
+This repository intentionally contains only the lower and middle control layers:
+- `ros2_control`
+- hardware interface
+- controller bringup
+
+Robot geometry, meshes, and base rover visuals live in `silverhand_rover_model`.
 
 ## Prerequisites
 
@@ -66,7 +68,7 @@ Extended workspace:
 ```bash
 /home/r/silver_ws/src/silverhand_ros2
 /home/r/silver_ws/src/silverhand_rover_control
-/home/r/silver_ws/src/silverhand_moveit2
+/home/r/silver_ws/src/silverhand_system_bringup
 ```
 
 ## Build
@@ -76,9 +78,7 @@ cd ~/silver_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-up-to \
   silverhand_rover_model \
-  silverhand_rover_description \
-  silverhand_rover_hardware \
-  silverhand_rover_bringup
+  silverhand_rover_control
 source ~/silver_ws/install/setup.bash
 ```
 
@@ -88,25 +88,77 @@ source ~/silver_ws/install/setup.bash
 ros2 pkg list | rg silverhand_rover
 ```
 
+Expected package from this repository:
+- `silverhand_rover_control`
+
 ## Launch
 
 Mock hardware:
 
 ```bash
-ros2 launch silverhand_rover_bringup silverhand_rover_mock.launch.py
+ros2 launch silverhand_rover_control silverhand_rover_mock.launch.py
 ```
 
 Stub real hardware:
 
 ```bash
-ros2 launch silverhand_rover_bringup silverhand_rover_real.launch.py can_iface:=vcan1 node_id:=110
+ros2 launch silverhand_rover_control silverhand_rover_real.launch.py can_iface:=vcan1 node_id:=110
 ```
 
 Generic bringup:
 
 ```bash
-ros2 launch silverhand_rover_bringup silverhand_rover_bringup.launch.py \
+ros2 launch silverhand_rover_control silverhand_rover_bringup.launch.py \
   use_mock_hardware:=true
+```
+
+## Helper scripts
+
+```bash
+cd /home/r/silver_ws/src/silverhand_rover_control
+./scripts/start_rover_mock.sh
+./scripts/start_rover_real.sh
+```
+
+Поддерживаемые переменные окружения:
+
+- `ROS_WS`
+- `ROS_DISTRO`
+- `SILVERHAND_ROVER_CAN_IFACE`
+- `SILVERHAND_ROVER_NODE_ID`
+- `SILVERHAND_ROVER_QUEUE_LEN`
+
+## systemd
+
+User-service template:
+
+- `systemd/user/silverhand-rover-control@.service`
+
+Установка:
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp /home/r/silver_ws/src/silverhand_rover_control/systemd/user/silverhand-rover-control@.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+```
+
+Запуск:
+
+```bash
+systemctl --user enable --now silverhand-rover-control@mock.service
+systemctl --user enable --now silverhand-rover-control@real.service
+```
+
+Автозапуск без логина:
+
+```bash
+loginctl enable-linger "$USER"
+```
+
+Логи:
+
+```bash
+journalctl --user -u silverhand-rover-control@mock.service -f
 ```
 
 ## Parameters
@@ -118,7 +170,7 @@ ros2 launch silverhand_rover_bringup silverhand_rover_bringup.launch.py \
 
 ## Notes
 
-- `silverhand_rover_description` does not duplicate the rover model. It includes `silverhand_rover_model/urdf/silverhand_rover.urdf.xacro` and appends the `ros2_control` block.
+- `silverhand_rover_control` does not duplicate the rover model. It includes `silverhand_rover_model/urdf/silverhand_rover.urdf.xacro` and appends the `ros2_control` block.
 - The Cyphal transport is vendored as the `third_party/libcxxcanard` git submodule.
 - The real hardware plugin currently logs lifecycle, read, and write activity instead of talking to the rover electronics.
 - `diff_drive_controller` is used as the first integration step. A custom rover controller can replace it later without changing the package split.

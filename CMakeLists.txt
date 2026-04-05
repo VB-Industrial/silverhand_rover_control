@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(silverhand_rover_hardware)
+project(silverhand_rover_control)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,7 +13,7 @@ find_package(rclcpp_lifecycle REQUIRED)
 
 set(
   LIBCXXCANARD_DIR
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libcxxcanard"
+  "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libcxxcanard"
   CACHE PATH
   "Path to the libcxxcanard sources used by the future Cyphal transport layer"
 )
@@ -41,9 +41,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} libcxxcanard)
-target_compile_definitions(${PROJECT_NAME} PRIVATE SILVERHAND_ROVER_HAS_LIBCXXCANARD)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE SILVERHAND_ROVER_HARDWARE_BUILDING_DLL)
+target_compile_definitions(${PROJECT_NAME} PRIVATE SILVERHAND_ROVER_CONTROL_BUILDING_DLL)
 
 ament_target_dependencies(
   ${PROJECT_NAME}
@@ -53,7 +51,14 @@ ament_target_dependencies(
   rclcpp_lifecycle
 )
 
-pluginlib_export_plugin_description_file(hardware_interface silverhand_rover_hardware.xml)
+pluginlib_export_plugin_description_file(hardware_interface silverhand_rover_control.xml)
+
+install(
+  DIRECTORY config launch ros2_control urdf
+  DESTINATION share/${PROJECT_NAME}
+  PATTERN "__pycache__" EXCLUDE
+  PATTERN "*.pyc" EXCLUDE
+)
 
 install(
   DIRECTORY include/
@@ -61,7 +66,7 @@ install(
 )
 
 install(
-  FILES silverhand_rover_hardware.xml
+  FILES silverhand_rover_control.xml
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -78,5 +83,7 @@ ament_export_dependencies(
   rclcpp
   rclcpp_lifecycle
 )
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
 
 ament_package()
