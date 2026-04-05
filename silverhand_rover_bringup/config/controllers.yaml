@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100
+    update_rate: 20
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -21,7 +21,7 @@ rover_base_controller:
     wheel_separation: 0.71
     wheel_radius: 0.1269
     wheels_per_side: 3
-    publish_rate: 50.0
+    publish_rate: 20.0
     base_frame_id: base_footprint
     odom_frame_id: odom
     enable_odom_tf: true
