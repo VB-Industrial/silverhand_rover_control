@@ -21,6 +21,15 @@
 #elif __has_include(<SDL2/SDL_hidapi.h>)
 #include <SDL2/SDL_hidapi.h>
 #define SILVERHAND_ROVER_HAS_HIDAPI 1
+using hid_device = SDL_hid_device;
+using hid_device_info = SDL_hid_device_info;
+#define hid_init SDL_hid_init
+#define hid_exit SDL_hid_exit
+#define hid_enumerate SDL_hid_enumerate
+#define hid_free_enumeration SDL_hid_free_enumeration
+#define hid_open_path(path) SDL_hid_open_path(path, 0)
+#define hid_close SDL_hid_close
+#define hid_read SDL_hid_read
 #else
 #define SILVERHAND_ROVER_HAS_HIDAPI 0
 #endif

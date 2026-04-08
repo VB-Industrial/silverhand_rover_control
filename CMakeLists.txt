@@ -54,6 +54,7 @@ target_include_directories(${PROJECT_NAME}_cyphal PRIVATE
 
 target_link_libraries(${PROJECT_NAME}_cyphal libcxxcanard)
 target_compile_definitions(${PROJECT_NAME}_cyphal PRIVATE SILVERHAND_ROVER_CONTROL_BUILDING_DLL)
+ament_target_dependencies(${PROJECT_NAME}_cyphal rclcpp)
 
 add_library(${PROJECT_NAME} SHARED src/silverhand_rover_hardware.cpp)
 
@@ -119,7 +120,7 @@ install(
   TARGETS ${PROJECT_NAME}_cyphal ${PROJECT_NAME} power_board_node
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_export_dependencies(

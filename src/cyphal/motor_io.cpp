@@ -65,7 +65,7 @@ MotorIo::MotorIo()
 
 MotorIo::~MotorIo() = default;
 
-bool MotorIo::configure(const std::vector<MotorChannelConfig> & channels, const rclcpp::Logger logger)
+bool MotorIo::configure(const std::vector<MotorChannelConfig> & channels, rclcpp::Logger logger)
 {
   impl_->logger = logger.get_child("motor_io");
   impl_->channels.clear();
@@ -94,7 +94,7 @@ bool MotorIo::configure(const std::vector<MotorChannelConfig> & channels, const 
 
 bool MotorIo::attach_interface(
   const std::shared_ptr<CyphalInterface> & interface,
-  const rclcpp::Logger logger)
+  rclcpp::Logger logger)
 {
   impl_->logger = logger.get_child("motor_io");
   impl_->interface = interface;

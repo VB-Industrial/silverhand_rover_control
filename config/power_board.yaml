@@ -1,5 +1,6 @@
 power_board_node:
   ros__parameters:
+    use_mock: false
     can_iface: vcan1
     node_id: 111
     queue_len: 1000
@@ -7,3 +8,10 @@ power_board_node:
     battery_state_port_id: 7993
     headlights_port_id: 1000
     battery_topic: /battery_state
+    mock_battery_publish_period_ms: 50
+    mock_battery_voltage: 25.2
+    mock_battery_current: -1.5
+    mock_battery_charge_ah: 18.0
+    mock_battery_capacity_ah: 24.0
+    mock_battery_design_capacity_ah: 24.0
+    mock_battery_present: true

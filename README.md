@@ -99,6 +99,11 @@ Mock hardware:
 ros2 launch silverhand_rover_control silverhand_rover_mock.launch.py
 ```
 
+Этот запуск поднимает:
+- `ros2_control` на `mock_components/GenericSystem`
+- `power_board_node` в mock-режиме без CAN/железа
+- mock `BatteryState` публикуется с периодом `50 ms` (`20 Hz`) по умолчанию
+
 Stub real hardware:
 
 ```bash
@@ -176,6 +181,14 @@ journalctl --user -u silverhand-rover-control@mock.service -f
 - `queue_len`: reserved queue length for the future Cyphal transport, default `1000`
 - `use_imu_odometry`: `auto`, `true`, or `false` for IMU+EKF versus wheel-only odometry
 - `power_board_client_node_id`: Cyphal node id used by `power_board_node`, default `111`
+- `power_board_node.use_mock`: publish synthetic battery data and accept headlights commands without Cyphal/CAN access
+- `power_board_node.mock_battery_*`: parameters for mock battery telemetry values and publish period
+
+## Power Board Timing
+
+- real `power_board_node`: Cyphal polling loop runs every `50 ms` (`20 Hz`)
+- real `power_board_node`: Cyphal heartbeat is emitted at approximately `1 Hz`
+- mock `power_board_node`: synthetic battery telemetry is published every `50 ms` (`20 Hz`) by default
 
 ## Notes
 

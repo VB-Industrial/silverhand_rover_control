@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:macro
     name="silverhand_rover_ros2_control"
-    params="name initial_positions_file use_mock_hardware:=true can_iface:=vcan1 node_id:=110 queue_len:=1000 imu_name:=imu_sensor imu_frame_id:=imu_link imu_device_path:= imu_vid:=51966 imu_pid:=16388 imu_report_size:=64 motor_command_port_base:=3000 motor_feedback_port_base:=3000">
+    params="name initial_positions_file use_mock_hardware:=true can_iface:=vcan1 node_id:=110 queue_len:=1000 imu_name:=imu_sensor imu_frame_id:=imu_link imu_device_path:='' imu_vid:=51966 imu_pid:=16388 imu_report_size:=64 motor_command_port_base:=3000 motor_feedback_port_base:=3000">
     <xacro:property
       name="initial_positions"
       value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>

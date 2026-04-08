@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "rclcpp/logger.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 class CyphalInterface;
 
