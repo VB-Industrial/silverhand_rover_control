@@ -16,6 +16,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "use_mock_hardware": "true",
+                    "use_imu_odometry": "false",
                 }.items(),
             )
         ]

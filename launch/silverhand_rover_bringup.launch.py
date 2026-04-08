@@ -1,9 +1,109 @@
+from pathlib import Path
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+
+
+def _is_truthy(value: str) -> bool:
+    return value.lower() in ("true", "1", "yes", "on")
+
+
+def _detect_imu_available(imu_device_path: str, imu_vid: str, imu_pid: str) -> bool:
+    if imu_device_path:
+      return Path(imu_device_path).exists()
+
+    try:
+        vid_hex = f"{int(imu_vid):04x}"
+        pid_hex = f"{int(imu_pid):04x}"
+    except ValueError:
+        return False
+
+    for hidraw_dir in Path("/sys/class/hidraw").glob("hidraw*"):
+        uevent_file = hidraw_dir / "device" / "uevent"
+        if not uevent_file.exists():
+            continue
+
+        try:
+            contents = uevent_file.read_text()
+        except OSError:
+            continue
+
+        expected_fragment = f"HID_ID=0003:{vid_hex.upper()}:{pid_hex.upper()}"
+        if expected_fragment in contents.upper():
+            return True
+
+    return False
+
+
+def _create_runtime_actions(context, robot_description, controllers_imu_file, controllers_wheel_file, ekf_config_file):
+    use_mock_hardware = LaunchConfiguration("use_mock_hardware").perform(context)
+    use_imu_odometry = LaunchConfiguration("use_imu_odometry").perform(context).lower()
+    imu_device_path = LaunchConfiguration("imu_device_path").perform(context)
+    imu_vid = LaunchConfiguration("imu_vid").perform(context)
+    imu_pid = LaunchConfiguration("imu_pid").perform(context)
+
+    if _is_truthy(use_mock_hardware):
+        imu_enabled = False
+        reason = "mock hardware requested"
+    elif use_imu_odometry == "true":
+        imu_enabled = True
+        reason = "forced by use_imu_odometry:=true"
+    elif use_imu_odometry == "false":
+        imu_enabled = False
+        reason = "forced by use_imu_odometry:=false"
+    else:
+        imu_enabled = _detect_imu_available(imu_device_path, imu_vid, imu_pid)
+        reason = "IMU device detected" if imu_enabled else "IMU device not detected, using wheel odometry fallback"
+
+    selected_controllers = controllers_imu_file if imu_enabled else controllers_wheel_file
+
+    actions = [
+        LogInfo(msg=f"silverhand_rover_control: {'IMU + EKF' if imu_enabled else 'wheel odometry'} mode selected ({reason})"),
+        Node(
+            package="controller_manager",
+            executable="ros2_control_node",
+            output="screen",
+            parameters=[robot_description, selected_controllers],
+            remappings=[("/controller_manager/robot_description", "/robot_description")],
+        ),
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+            output="screen",
+        ),
+        Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["rover_base_controller", "--controller-manager", "/controller_manager"],
+            output="screen",
+        ),
+    ]
+
+    if imu_enabled:
+        actions.extend(
+            [
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    arguments=["imu_sensor_broadcaster", "--controller-manager", "/controller_manager"],
+                    output="screen",
+                ),
+                Node(
+                    package="robot_localization",
+                    executable="ekf_node",
+                    name="ekf_filter_node",
+                    output="screen",
+                    parameters=[ekf_config_file],
+                ),
+            ]
+        )
+
+    return actions
 
 
 def generate_launch_description():
@@ -11,12 +111,25 @@ def generate_launch_description():
     can_iface = LaunchConfiguration("can_iface")
     node_id = LaunchConfiguration("node_id")
     queue_len = LaunchConfiguration("queue_len")
+    imu_name = LaunchConfiguration("imu_name")
+    imu_frame_id = LaunchConfiguration("imu_frame_id")
+    imu_device_path = LaunchConfiguration("imu_device_path")
+    imu_vid = LaunchConfiguration("imu_vid")
+    imu_pid = LaunchConfiguration("imu_pid")
+    imu_report_size = LaunchConfiguration("imu_report_size")
+    use_imu_odometry = LaunchConfiguration("use_imu_odometry")
 
     description_file = PathJoinSubstitution(
         [FindPackageShare("silverhand_rover_control"), "urdf", "silverhand_rover.urdf.xacro"]
     )
-    controllers_file = PathJoinSubstitution(
-        [FindPackageShare("silverhand_rover_control"), "config", "controllers.yaml"]
+    controllers_imu_file = PathJoinSubstitution(
+        [FindPackageShare("silverhand_rover_control"), "config", "controllers_imu.yaml"]
+    )
+    controllers_wheel_file = PathJoinSubstitution(
+        [FindPackageShare("silverhand_rover_control"), "config", "controllers_wheel.yaml"]
+    )
+    ekf_config_file = PathJoinSubstitution(
+        [FindPackageShare("silverhand_rover_control"), "config", "ekf_imu.yaml"]
     )
 
     robot_description_content = Command(
@@ -36,6 +149,24 @@ def generate_launch_description():
             " ",
             "queue_len:=",
             queue_len,
+            " ",
+            "imu_name:=",
+            imu_name,
+            " ",
+            "imu_frame_id:=",
+            imu_frame_id,
+            " ",
+            "imu_device_path:=",
+            imu_device_path,
+            " ",
+            "imu_vid:=",
+            imu_vid,
+            " ",
+            "imu_pid:=",
+            imu_pid,
+            " ",
+            "imu_report_size:=",
+            imu_report_size,
         ]
     )
     robot_description = {
@@ -47,28 +178,6 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="screen",
         parameters=[robot_description],
-    )
-
-    ros2_control_node = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
-        output="screen",
-        parameters=[robot_description, controllers_file],
-        remappings=[("/controller_manager/robot_description", "/robot_description")],
-    )
-
-    joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-        output="screen",
-    )
-
-    rover_base_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["rover_base_controller", "--controller-manager", "/controller_manager"],
-        output="screen",
     )
 
     return LaunchDescription(
@@ -93,9 +202,50 @@ def generate_launch_description():
                 default_value="1000",
                 description="Future Cyphal queue length for the rover hardware plugin.",
             ),
+            DeclareLaunchArgument(
+                "imu_name",
+                default_value="imu_sensor",
+                description="ros2_control sensor name exported for the USB IMU.",
+            ),
+            DeclareLaunchArgument(
+                "imu_frame_id",
+                default_value="imu_link",
+                description="Frame id published by the IMU broadcaster.",
+            ),
+            DeclareLaunchArgument(
+                "imu_device_path",
+                default_value="",
+                description="Optional /dev/hidrawX path for the IMU. Empty means auto-detect by VID/PID.",
+            ),
+            DeclareLaunchArgument(
+                "imu_vid",
+                default_value="51966",
+                description="USB vendor id for the HID IMU in decimal form.",
+            ),
+            DeclareLaunchArgument(
+                "imu_pid",
+                default_value="16388",
+                description="USB product id for the HID IMU in decimal form.",
+            ),
+            DeclareLaunchArgument(
+                "imu_report_size",
+                default_value="64",
+                description="Expected HID report size for IMU packets.",
+            ),
+            DeclareLaunchArgument(
+                "use_imu_odometry",
+                default_value="auto",
+                description="IMU odometry mode: auto, true, or false.",
+            ),
             robot_state_publisher,
-            ros2_control_node,
-            joint_state_broadcaster_spawner,
-            rover_base_controller_spawner,
+            OpaqueFunction(
+                function=lambda context: _create_runtime_actions(
+                    context,
+                    robot_description,
+                    controllers_imu_file,
+                    controllers_wheel_file,
+                    ekf_config_file,
+                )
+            ),
         ]
     )

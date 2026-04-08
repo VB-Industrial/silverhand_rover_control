@@ -7,6 +7,14 @@
   <xacro:arg name="can_iface" default="vcan1"/>
   <xacro:arg name="node_id" default="110"/>
   <xacro:arg name="queue_len" default="1000"/>
+  <xacro:arg name="imu_name" default="imu_sensor"/>
+  <xacro:arg name="imu_frame_id" default="imu_link"/>
+  <xacro:arg name="imu_device_path" default=""/>
+  <xacro:arg name="imu_vid" default="51966"/>
+  <xacro:arg name="imu_pid" default="16388"/>
+  <xacro:arg name="imu_report_size" default="64"/>
+  <xacro:arg name="motor_command_port_base" default="3000"/>
+  <xacro:arg name="motor_feedback_port_base" default="3000"/>
 
   <xacro:include filename="$(find silverhand_rover_model)/urdf/silverhand_rover.urdf.xacro"/>
   <xacro:include filename="$(find silverhand_rover_control)/ros2_control/silverhand_rover.ros2_control.xacro"/>
@@ -17,5 +25,13 @@
     use_mock_hardware="$(arg use_mock_hardware)"
     can_iface="$(arg can_iface)"
     node_id="$(arg node_id)"
-    queue_len="$(arg queue_len)"/>
+    queue_len="$(arg queue_len)"
+    imu_name="$(arg imu_name)"
+    imu_frame_id="$(arg imu_frame_id)"
+    imu_device_path="$(arg imu_device_path)"
+    imu_vid="$(arg imu_vid)"
+    imu_pid="$(arg imu_pid)"
+    imu_report_size="$(arg imu_report_size)"
+    motor_command_port_base="$(arg motor_command_port_base)"
+    motor_feedback_port_base="$(arg motor_feedback_port_base)"/>
 </robot>

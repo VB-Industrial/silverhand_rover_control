@@ -1,0 +1,9 @@
+power_board_node:
+  ros__parameters:
+    can_iface: vcan1
+    node_id: 111
+    queue_len: 1000
+    power_board_node_id: 9
+    battery_state_port_id: 7993
+    headlights_port_id: 1000
+    battery_topic: /battery_state

@@ -105,6 +105,13 @@ Stub real hardware:
 ros2 launch silverhand_rover_control silverhand_rover_real.launch.py can_iface:=vcan1 node_id:=110
 ```
 
+Real hardware with forced wheel odometry fallback:
+
+```bash
+ros2 launch silverhand_rover_control silverhand_rover_real.launch.py \
+  use_imu_odometry:=false
+```
+
 Generic bringup:
 
 ```bash
@@ -167,10 +174,13 @@ journalctl --user -u silverhand-rover-control@mock.service -f
 - `can_iface`: CAN or VCAN interface for the future Cyphal transport, default `vcan1`
 - `node_id`: Cyphal node id for the rover hardware plugin, default `110`
 - `queue_len`: reserved queue length for the future Cyphal transport, default `1000`
+- `use_imu_odometry`: `auto`, `true`, or `false` for IMU+EKF versus wheel-only odometry
+- `power_board_client_node_id`: Cyphal node id used by `power_board_node`, default `111`
 
 ## Notes
 
 - `silverhand_rover_control` does not duplicate the rover model. It includes `silverhand_rover_model/urdf/silverhand_rover.urdf.xacro` and appends the `ros2_control` block.
 - The Cyphal transport is vendored as the `third_party/libcxxcanard` git submodule.
-- The real hardware plugin currently logs lifecycle, read, and write activity instead of talking to the rover electronics.
+- The real hardware plugin now expects wheel motor commands on subjects `3000 + motor_id` and wheel feedback on subjects `3000 - motor_id`.
+- `power_board_node` is a separate Cyphal-facing ROS node for battery telemetry and headlights, keeping power/HMI concerns outside `ros2_control`.
 - `diff_drive_controller` is used as the first integration step. A custom rover controller can replace it later without changing the package split.
