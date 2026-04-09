@@ -1,6 +1,8 @@
 profiles:
   mock:
     can_iface: vcan1
+    power_board_can_iface: vcan1
+    headlights_can_iface: vcan1
     node_id: 110
     queue_len: 1000
     use_imu_odometry: "false"
@@ -14,6 +16,8 @@ profiles:
     imu_report_size: 64
   ros_control:
     can_iface: can0
+    power_board_can_iface: can0
+    headlights_can_iface: can0
     node_id: 110
     queue_len: 1000
     use_imu_odometry: auto

@@ -20,6 +20,7 @@ struct MotorChannelConfig
   std::uint16_t motor_id{0};
   std::uint16_t command_port_id{0};
   std::uint16_t feedback_port_id{0};
+  double direction_multiplier{1.0};
 };
 
 class MotorIo

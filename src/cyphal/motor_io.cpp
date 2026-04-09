@@ -44,7 +44,8 @@ struct MotorIo::Impl
         return;
       }
 
-      channel_->latest_velocity = static_cast<double>(message.radian_per_second);
+      channel_->latest_velocity = static_cast<double>(message.radian_per_second) *
+        channel_->config.direction_multiplier;
       channel_->has_feedback = true;
     }
 
@@ -155,7 +156,8 @@ void MotorIo::publish_commands(const std::vector<double> & wheel_velocity_comman
   const auto count = std::min(impl_->channels.size(), wheel_velocity_command.size());
   for (std::size_t i = 0; i < count; ++i) {
     AngularVelocityMsg::Type message = {
-      .radian_per_second = static_cast<float>(wheel_velocity_command[i])
+      .radian_per_second = static_cast<float>(
+        wheel_velocity_command[i] * impl_->channels[i].config.direction_multiplier)
     };
     impl_->interface->send_msg<AngularVelocityMsg>(
       &message,

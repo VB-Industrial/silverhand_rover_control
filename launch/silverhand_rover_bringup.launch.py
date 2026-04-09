@@ -1,5 +1,6 @@
-from pathlib import Path
 import os
+import re
+from pathlib import Path
 import yaml
 
 from ament_index_python.packages import get_package_share_directory
@@ -20,8 +21,8 @@ def _detect_imu_available(imu_device_path: str, imu_vid: str, imu_pid: str) -> b
       return Path(imu_device_path).exists()
 
     try:
-        vid_hex = f"{int(imu_vid):04x}"
-        pid_hex = f"{int(imu_pid):04x}"
+        expected_vid = int(imu_vid)
+        expected_pid = int(imu_pid)
     except ValueError:
         return False
 
@@ -35,8 +36,21 @@ def _detect_imu_available(imu_device_path: str, imu_vid: str, imu_pid: str) -> b
         except OSError:
             continue
 
-        expected_fragment = f"HID_ID=0003:{vid_hex.upper()}:{pid_hex.upper()}"
-        if expected_fragment in contents.upper():
+        hid_id_match = re.search(
+            r"^HID_ID=[0-9A-Fa-f]+:([0-9A-Fa-f]+):([0-9A-Fa-f]+)$",
+            contents,
+            re.MULTILINE,
+        )
+        if not hid_id_match:
+            continue
+
+        try:
+            detected_vid = int(hid_id_match.group(1), 16)
+            detected_pid = int(hid_id_match.group(2), 16)
+        except ValueError:
+            continue
+
+        if detected_vid == expected_vid and detected_pid == expected_pid:
             return True
 
     return False

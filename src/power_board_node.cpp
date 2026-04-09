@@ -34,7 +34,6 @@ public:
     declare_parameter<int>("queue_len", 1000);
     declare_parameter<int>("power_board_node_id", 9);
     declare_parameter<int>("battery_state_port_id", 7993);
-    declare_parameter<int>("headlights_port_id", 1000);
     declare_parameter<std::string>("battery_topic", "/battery_state");
     declare_parameter<int>("mock_battery_publish_period_ms", 50);
     declare_parameter<double>("mock_battery_voltage", 25.2);
@@ -50,7 +49,6 @@ public:
     const auto queue_len = static_cast<std::size_t>(get_parameter("queue_len").as_int());
     power_board_node_id_ = static_cast<std::uint16_t>(get_parameter("power_board_node_id").as_int());
     battery_state_port_id_ = static_cast<std::uint16_t>(get_parameter("battery_state_port_id").as_int());
-    headlights_port_id_ = static_cast<std::uint16_t>(get_parameter("headlights_port_id").as_int());
     mock_battery_publish_period_ms_ = get_parameter("mock_battery_publish_period_ms").as_int();
     if (mock_battery_publish_period_ms_ <= 0) {
       mock_battery_publish_period_ms_ = 50;
@@ -67,10 +65,6 @@ public:
     battery_publisher_ = create_publisher<sensor_msgs::msg::BatteryState>(
       get_parameter("battery_topic").as_string(),
       10);
-
-    headlights_service_ = create_service<std_srvs::srv::SetBool>(
-      "/power_board/set_headlights",
-      std::bind(&PowerBoardNode::handle_headlights, this, std::placeholders::_1, std::placeholders::_2));
 
     if (use_mock_) {
       RCLCPP_INFO(
@@ -171,44 +165,12 @@ private:
     battery_publisher_->publish(ros_msg);
   }
 
-  void handle_headlights(
-    const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-    std::shared_ptr<std_srvs::srv::SetBool::Response> response)
-  {
-    if (use_mock_) {
-      mock_headlights_enabled_ = request->data;
-      response->success = true;
-      response->message = request->data ?
-        "Mock headlights enabled" :
-        "Mock headlights disabled";
-      return;
-    }
-
-    if (!runtime_->is_started()) {
-      response->success = false;
-      response->message = "Cyphal runtime is not started";
-      return;
-    }
-
-    AngularVelocityMsg::Type message = {
-      .radian_per_second = request->data ? 1.0F : 0.0F
-    };
-    runtime_->interface()->send_msg<AngularVelocityMsg>(
-      &message,
-      headlights_port_id_,
-      &headlights_transfer_id_);
-    response->success = true;
-    response->message = request->data ? "Headlights enabled" : "Headlights disabled";
-  }
-
   std::unique_ptr<silverhand_rover_control::cyphal::Runtime> runtime_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr battery_publisher_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr headlights_service_;
   std::unique_ptr<BatteryReader> battery_subscription_;
   std::uint16_t power_board_node_id_{9};
   std::uint16_t battery_state_port_id_{7993};
-  std::uint16_t headlights_port_id_{1000};
   bool use_mock_{false};
   int mock_battery_publish_period_ms_{50};
   float mock_battery_voltage_{25.2F};
@@ -217,8 +179,6 @@ private:
   float mock_battery_capacity_ah_{24.0F};
   float mock_battery_design_capacity_ah_{24.0F};
   bool mock_battery_present_{true};
-  bool mock_headlights_enabled_{false};
-  CanardTransferID headlights_transfer_id_{0};
   std::size_t loop_counter_{0};
 };
 

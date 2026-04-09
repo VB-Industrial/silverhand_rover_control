@@ -2,6 +2,7 @@ power_board_node:
   ros__parameters:
     use_mock: false
     can_iface: vcan1
+    headlights_can_iface: vcan1
     node_id: 111
     queue_len: 1000
     power_board_node_id: 9

@@ -5,7 +5,7 @@ ekf_filter_node:
     two_d_mode: true
     publish_tf: true
     publish_acceleration: false
-    map_frame: odom
+    map_frame: map
     odom_frame: odom
     base_link_frame: base_link
     world_frame: odom

@@ -22,6 +22,8 @@ def load_profile(profile_name):
 def generate_launch_description():
     ros_control_profile = load_profile("ros_control")
     can_iface = LaunchConfiguration("can_iface")
+    power_board_can_iface = LaunchConfiguration("power_board_can_iface")
+    headlights_can_iface = LaunchConfiguration("headlights_can_iface")
     node_id = LaunchConfiguration("node_id")
     queue_len = LaunchConfiguration("queue_len")
     use_imu_odometry = LaunchConfiguration("use_imu_odometry")
@@ -34,6 +36,19 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument("can_iface", default_value=str(ros_control_profile["can_iface"])),
+            DeclareLaunchArgument(
+                "power_board_can_iface",
+                default_value=str(ros_control_profile.get("power_board_can_iface", ros_control_profile["can_iface"])),
+            ),
+            DeclareLaunchArgument(
+                "headlights_can_iface",
+                default_value=str(
+                    ros_control_profile.get(
+                        "headlights_can_iface",
+                        ros_control_profile.get("power_board_can_iface", ros_control_profile["can_iface"]),
+                    )
+                ),
+            ),
             DeclareLaunchArgument("node_id", default_value=str(ros_control_profile["node_id"])),
             DeclareLaunchArgument("queue_len", default_value=str(ros_control_profile["queue_len"])),
             DeclareLaunchArgument("use_imu_odometry", default_value=str(ros_control_profile["use_imu_odometry"])),
@@ -66,10 +81,26 @@ def generate_launch_description():
                 parameters=[
                     power_board_config,
                     {
-                        "can_iface": can_iface,
+                        "can_iface": power_board_can_iface,
+                        "headlights_can_iface": headlights_can_iface,
                         "queue_len": queue_len,
                         "node_id": power_board_client_node_id,
                     },
+                ],
+                condition=IfCondition(use_power_board),
+            ),
+            Node(
+                package="silverhand_rover_control",
+                executable="headlights_node",
+                output="screen",
+                parameters=[
+                    {
+                        "use_mock": False,
+                        "can_iface": headlights_can_iface,
+                        "queue_len": queue_len,
+                        "node_id": power_board_client_node_id,
+                    },
+                    power_board_config,
                 ],
                 condition=IfCondition(use_power_board),
             ),

@@ -108,6 +108,23 @@ std::uint16_t get_joint_uint16_param(
   }
 }
 
+double get_joint_double_param(
+  const hardware_interface::ComponentInfo & joint,
+  const std::string & key,
+  const double default_value)
+{
+  const auto it = joint.parameters.find(key);
+  if (it == joint.parameters.end()) {
+    return default_value;
+  }
+
+  try {
+    return std::stod(it->second);
+  } catch (const std::exception &) {
+    return default_value;
+  }
+}
+
 void initialize_imu_state(std::vector<double> & imu_state)
 {
   constexpr std::size_t imu_state_interface_count = 10U;
@@ -192,6 +209,7 @@ CallbackReturn SilverhandRoverSystem::on_init(
         motor_id,
         static_cast<std::uint16_t>(motor_command_port_base_ + motor_id),
         static_cast<std::uint16_t>(motor_feedback_port_base_ - motor_id),
+        get_joint_double_param(joint, "direction_multiplier", 1.0),
       });
   }
 
