@@ -85,12 +85,14 @@ def _create_runtime_actions(context, robot_description, controllers_imu_file, co
         reason = "IMU device detected" if imu_enabled else "IMU device not detected, using wheel odometry fallback"
 
     selected_controllers = controllers_imu_file if imu_enabled else controllers_wheel_file
+    controller_manager_name = "/rover_controller_manager"
 
     actions = [
         LogInfo(msg=f"silverhand_rover_control: {'IMU + EKF' if imu_enabled else 'wheel odometry'} mode selected ({reason})"),
         Node(
             package="controller_manager",
             executable="ros2_control_node",
+            name="rover_controller_manager",
             output="screen",
             parameters=[robot_description, selected_controllers],
             remappings=[("/controller_manager/robot_description", "/robot_description")],
@@ -98,13 +100,13 @@ def _create_runtime_actions(context, robot_description, controllers_imu_file, co
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+            arguments=["joint_state_broadcaster", "--controller-manager", controller_manager_name],
             output="screen",
         ),
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["rover_base_controller", "--controller-manager", "/controller_manager"],
+            arguments=["rover_base_controller", "--controller-manager", controller_manager_name],
             output="screen",
         ),
     ]
@@ -115,7 +117,7 @@ def _create_runtime_actions(context, robot_description, controllers_imu_file, co
                 Node(
                     package="controller_manager",
                     executable="spawner",
-                    arguments=["imu_sensor_broadcaster", "--controller-manager", "/controller_manager"],
+                    arguments=["imu_sensor_broadcaster", "--controller-manager", controller_manager_name],
                     output="screen",
                 ),
                 Node(

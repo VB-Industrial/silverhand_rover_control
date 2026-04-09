@@ -8,6 +8,16 @@ controller_manager:
     rover_base_controller:
       type: diff_drive_controller/DiffDriveController
 
+rover_controller_manager:
+  ros__parameters:
+    update_rate: 20
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    rover_base_controller:
+      type: diff_drive_controller/DiffDriveController
+
 rover_base_controller:
   ros__parameters:
     left_wheel_names:

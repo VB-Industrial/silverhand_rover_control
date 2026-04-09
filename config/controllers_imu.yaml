@@ -11,6 +11,19 @@ controller_manager:
     rover_base_controller:
       type: diff_drive_controller/DiffDriveController
 
+rover_controller_manager:
+  ros__parameters:
+    update_rate: 20
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
+    rover_base_controller:
+      type: diff_drive_controller/DiffDriveController
+
 imu_sensor_broadcaster:
   ros__parameters:
     sensor_name: imu_sensor
