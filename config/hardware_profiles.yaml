@@ -1,0 +1,27 @@
+profiles:
+  mock:
+    can_iface: vcan1
+    node_id: 110
+    queue_len: 1000
+    use_imu_odometry: "false"
+    use_power_board: true
+    power_board_client_node_id: 111
+    imu_name: imu_sensor
+    imu_frame_id: imu_link
+    imu_device_path: ""
+    imu_vid: 51966
+    imu_pid: 16388
+    imu_report_size: 64
+  ros_control:
+    can_iface: can0
+    node_id: 110
+    queue_len: 1000
+    use_imu_odometry: auto
+    use_power_board: true
+    power_board_client_node_id: 111
+    imu_name: imu_sensor
+    imu_frame_id: imu_link
+    imu_device_path: ""
+    imu_vid: 51966
+    imu_pid: 16388
+    imu_report_size: 64

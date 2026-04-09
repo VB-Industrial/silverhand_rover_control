@@ -1,3 +1,7 @@
+import os
+import yaml
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
@@ -7,7 +11,16 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
+def load_profile(profile_name):
+    package_path = get_package_share_directory("silverhand_rover_control")
+    profile_path = os.path.join(package_path, "config", "hardware_profiles.yaml")
+    with open(profile_path, "r", encoding="utf-8") as file:
+        profiles = yaml.safe_load(file)["profiles"]
+    return profiles[profile_name]
+
+
 def generate_launch_description():
+    mock_profile = load_profile("mock")
     can_iface = LaunchConfiguration("can_iface")
     node_id = LaunchConfiguration("node_id")
     queue_len = LaunchConfiguration("queue_len")
@@ -19,11 +32,14 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            DeclareLaunchArgument("can_iface", default_value="vcan1"),
-            DeclareLaunchArgument("node_id", default_value="110"),
-            DeclareLaunchArgument("queue_len", default_value="1000"),
-            DeclareLaunchArgument("use_power_board", default_value="true"),
-            DeclareLaunchArgument("power_board_client_node_id", default_value="111"),
+            DeclareLaunchArgument("can_iface", default_value=str(mock_profile["can_iface"])),
+            DeclareLaunchArgument("node_id", default_value=str(mock_profile["node_id"])),
+            DeclareLaunchArgument("queue_len", default_value=str(mock_profile["queue_len"])),
+            DeclareLaunchArgument("use_power_board", default_value=str(mock_profile["use_power_board"]).lower()),
+            DeclareLaunchArgument(
+                "power_board_client_node_id",
+                default_value=str(mock_profile["power_board_client_node_id"]),
+            ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     PathJoinSubstitution(
@@ -35,7 +51,7 @@ def generate_launch_description():
                     "can_iface": can_iface,
                     "node_id": node_id,
                     "queue_len": queue_len,
-                    "use_imu_odometry": "false",
+                    "use_imu_odometry": str(mock_profile["use_imu_odometry"]),
                 }.items(),
             ),
             Node(

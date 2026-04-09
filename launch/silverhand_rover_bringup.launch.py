@@ -1,5 +1,8 @@
 from pathlib import Path
+import os
+import yaml
 
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
@@ -37,6 +40,14 @@ def _detect_imu_available(imu_device_path: str, imu_vid: str, imu_pid: str) -> b
             return True
 
     return False
+
+
+def _load_profile(profile_name: str):
+    package_path = get_package_share_directory("silverhand_rover_control")
+    profile_path = os.path.join(package_path, "config", "hardware_profiles.yaml")
+    with open(profile_path, "r", encoding="utf-8") as file:
+        profiles = yaml.safe_load(file)["profiles"]
+    return profiles[profile_name]
 
 
 def _create_runtime_actions(context, robot_description, controllers_imu_file, controllers_wheel_file, ekf_config_file):
@@ -107,6 +118,7 @@ def _create_runtime_actions(context, robot_description, controllers_imu_file, co
 
 
 def generate_launch_description():
+    ros_control_profile = _load_profile("ros_control")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
     can_iface = LaunchConfiguration("can_iface")
     node_id = LaunchConfiguration("node_id")
@@ -189,52 +201,52 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "can_iface",
-                default_value="vcan1",
+                default_value=str(ros_control_profile["can_iface"]),
                 description="Linux CAN interface reserved for the future rover Cyphal transport.",
             ),
             DeclareLaunchArgument(
                 "node_id",
-                default_value="110",
+                default_value=str(ros_control_profile["node_id"]),
                 description="Cyphal node id reserved for the rover ros2_control hardware plugin.",
             ),
             DeclareLaunchArgument(
                 "queue_len",
-                default_value="1000",
+                default_value=str(ros_control_profile["queue_len"]),
                 description="Future Cyphal queue length for the rover hardware plugin.",
             ),
             DeclareLaunchArgument(
                 "imu_name",
-                default_value="imu_sensor",
+                default_value=str(ros_control_profile["imu_name"]),
                 description="ros2_control sensor name exported for the USB IMU.",
             ),
             DeclareLaunchArgument(
                 "imu_frame_id",
-                default_value="imu_link",
+                default_value=str(ros_control_profile["imu_frame_id"]),
                 description="Frame id published by the IMU broadcaster.",
             ),
             DeclareLaunchArgument(
                 "imu_device_path",
-                default_value="",
+                default_value=str(ros_control_profile["imu_device_path"]),
                 description="Optional /dev/hidrawX path for the IMU. Empty means auto-detect by VID/PID.",
             ),
             DeclareLaunchArgument(
                 "imu_vid",
-                default_value="51966",
+                default_value=str(ros_control_profile["imu_vid"]),
                 description="USB vendor id for the HID IMU in decimal form.",
             ),
             DeclareLaunchArgument(
                 "imu_pid",
-                default_value="16388",
+                default_value=str(ros_control_profile["imu_pid"]),
                 description="USB product id for the HID IMU in decimal form.",
             ),
             DeclareLaunchArgument(
                 "imu_report_size",
-                default_value="64",
+                default_value=str(ros_control_profile["imu_report_size"]),
                 description="Expected HID report size for IMU packets.",
             ),
             DeclareLaunchArgument(
                 "use_imu_odometry",
-                default_value="auto",
+                default_value=str(ros_control_profile["use_imu_odometry"]),
                 description="IMU odometry mode: auto, true, or false.",
             ),
             robot_state_publisher,

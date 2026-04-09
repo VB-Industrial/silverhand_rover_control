@@ -1,3 +1,7 @@
+import os
+import yaml
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
@@ -7,7 +11,16 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
+def load_profile(profile_name):
+    package_path = get_package_share_directory("silverhand_rover_control")
+    profile_path = os.path.join(package_path, "config", "hardware_profiles.yaml")
+    with open(profile_path, "r", encoding="utf-8") as file:
+        profiles = yaml.safe_load(file)["profiles"]
+    return profiles[profile_name]
+
+
 def generate_launch_description():
+    ros_control_profile = load_profile("ros_control")
     can_iface = LaunchConfiguration("can_iface")
     node_id = LaunchConfiguration("node_id")
     queue_len = LaunchConfiguration("queue_len")
@@ -20,12 +33,18 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            DeclareLaunchArgument("can_iface", default_value="vcan1"),
-            DeclareLaunchArgument("node_id", default_value="110"),
-            DeclareLaunchArgument("queue_len", default_value="1000"),
-            DeclareLaunchArgument("use_imu_odometry", default_value="auto"),
-            DeclareLaunchArgument("use_power_board", default_value="true"),
-            DeclareLaunchArgument("power_board_client_node_id", default_value="111"),
+            DeclareLaunchArgument("can_iface", default_value=str(ros_control_profile["can_iface"])),
+            DeclareLaunchArgument("node_id", default_value=str(ros_control_profile["node_id"])),
+            DeclareLaunchArgument("queue_len", default_value=str(ros_control_profile["queue_len"])),
+            DeclareLaunchArgument("use_imu_odometry", default_value=str(ros_control_profile["use_imu_odometry"])),
+            DeclareLaunchArgument(
+                "use_power_board",
+                default_value=str(ros_control_profile["use_power_board"]).lower(),
+            ),
+            DeclareLaunchArgument(
+                "power_board_client_node_id",
+                default_value=str(ros_control_profile["power_board_client_node_id"]),
+            ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     PathJoinSubstitution(
