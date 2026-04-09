@@ -1,3 +1,0 @@
-[submodule "third_party/libcxxcanard"]
-	path = third_party/libcxxcanard
-	url = https://github.com/VBCores/libcxxcanard.git

@@ -28,23 +28,12 @@ sudo apt-get install -y \
 
 ## Clone
 
-Clone the control stack with submodules:
+Clone the control stack into a workspace that already contains `libcxxcanard`:
 
 ```bash
 cd ~/silver_ws/src
-git clone --recurse-submodules <silverhand_rover_control_repo_url>
-```
-
-If the repository is already cloned:
-
-```bash
-git submodule update --init --recursive
-```
-
-The real Cyphal backend is expected at:
-
-```bash
-/home/r/silver_ws/src/silverhand_rover_control/third_party/libcxxcanard
+git clone https://github.com/VB-Industrial/libcxxcanard.git
+git clone <silverhand_rover_control_repo_url>
 ```
 
 Clone the rover model next to it in the same workspace:
@@ -54,12 +43,19 @@ cd ~/silver_ws/src
 git clone https://github.com/VB-Industrial/silverhand_rover_model.git
 ```
 
+The real Cyphal backend is expected at:
+
+```bash
+/home/r/silver_ws/src/libcxxcanard
+```
+
 ## Workspace Layout
 
 Minimal shared workspace for bringup:
 
 ```bash
 /home/r/silver_ws/src/silverhand_rover_model
+/home/r/silver_ws/src/libcxxcanard
 /home/r/silver_ws/src/silverhand_rover_control
 ```
 
@@ -67,6 +63,7 @@ Extended workspace:
 
 ```bash
 /home/r/silver_ws/src/silverhand_ros2
+/home/r/silver_ws/src/libcxxcanard
 /home/r/silver_ws/src/silverhand_rover_control
 /home/r/silver_ws/src/silverhand_system_bringup
 ```
@@ -193,7 +190,7 @@ journalctl --user -u silverhand-rover-control@mock.service -f
 ## Notes
 
 - `silverhand_rover_control` does not duplicate the rover model. It includes `silverhand_rover_model/urdf/silverhand_rover.urdf.xacro` and appends the `ros2_control` block.
-- The Cyphal transport is vendored as the `third_party/libcxxcanard` git submodule.
+- `libcxxcanard` is a separate workspace prerequisite and should be cloned into `~/silver_ws/src/libcxxcanard`.
 - The real hardware plugin now expects wheel motor commands on subjects `3000 + motor_id` and wheel feedback on subjects `3000 - motor_id`.
 - `power_board_node` is a separate Cyphal-facing ROS node for battery telemetry and headlights, keeping power/HMI concerns outside `ros2_control`.
 - `diff_drive_controller` is used as the first integration step. A custom rover controller can replace it later without changing the package split.

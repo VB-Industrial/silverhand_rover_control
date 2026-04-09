@@ -7,28 +7,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(ament_cmake REQUIRED)
 find_package(hardware_interface REQUIRED)
+find_package(libcxxcanard REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(PkgConfig QUIET)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
-
-set(
-  LIBCXXCANARD_DIR
-  "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libcxxcanard"
-  CACHE PATH
-  "Path to the libcxxcanard sources used by the future Cyphal transport layer"
-)
-
-if(NOT EXISTS "${LIBCXXCANARD_DIR}/CMakeLists.txt")
-  message(FATAL_ERROR
-    "libcxxcanard was not found at ${LIBCXXCANARD_DIR}. "
-    "Run 'git submodule update --init --recursive' in the repository root."
-  )
-endif()
-
-add_subdirectory("${LIBCXXCANARD_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/libcxxcanard")
 
 find_library(HIDAPI_HIDRAW_LIB hidapi-hidraw)
 set(SDL2_LIB_TARGET "")
@@ -58,15 +43,8 @@ target_include_directories(${PROJECT_NAME}_cyphal PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
-target_include_directories(${PROJECT_NAME}_cyphal PRIVATE
-  "${LIBCXXCANARD_DIR}"
-  "${LIBCXXCANARD_DIR}/libs"
-  "${LIBCXXCANARD_DIR}/src"
-)
-
-target_link_libraries(${PROJECT_NAME}_cyphal libcxxcanard)
 target_compile_definitions(${PROJECT_NAME}_cyphal PRIVATE SILVERHAND_ROVER_CONTROL_BUILDING_DLL)
-ament_target_dependencies(${PROJECT_NAME}_cyphal rclcpp)
+ament_target_dependencies(${PROJECT_NAME}_cyphal libcxxcanard rclcpp)
 
 add_library(${PROJECT_NAME} SHARED src/silverhand_rover_hardware.cpp)
 
@@ -75,13 +53,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-  "${LIBCXXCANARD_DIR}"
-  "${LIBCXXCANARD_DIR}/libs"
-  "${LIBCXXCANARD_DIR}/src"
-)
-
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_cyphal libcxxcanard)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_cyphal)
 if(HIDAPI_HIDRAW_LIB)
   target_link_libraries(${PROJECT_NAME} ${HIDAPI_HIDRAW_LIB})
 elseif(SDL2_LIB_TARGET)
@@ -92,34 +64,27 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE SILVERHAND_ROVER_CONTROL_BUIL
 ament_target_dependencies(
   ${PROJECT_NAME}
   hardware_interface
+  libcxxcanard
   pluginlib
   rclcpp
   rclcpp_lifecycle
 )
 
 add_executable(power_board_node src/power_board_node.cpp)
-target_include_directories(power_board_node PRIVATE
-  "${LIBCXXCANARD_DIR}"
-  "${LIBCXXCANARD_DIR}/libs"
-  "${LIBCXXCANARD_DIR}/src"
-)
-target_link_libraries(power_board_node ${PROJECT_NAME}_cyphal libcxxcanard)
+target_link_libraries(power_board_node ${PROJECT_NAME}_cyphal)
 ament_target_dependencies(
   power_board_node
+  libcxxcanard
   rclcpp
   sensor_msgs
   std_srvs
 )
 
 add_executable(headlights_node src/headlights_node.cpp)
-target_include_directories(headlights_node PRIVATE
-  "${LIBCXXCANARD_DIR}"
-  "${LIBCXXCANARD_DIR}/libs"
-  "${LIBCXXCANARD_DIR}/src"
-)
-target_link_libraries(headlights_node ${PROJECT_NAME}_cyphal libcxxcanard)
+target_link_libraries(headlights_node ${PROJECT_NAME}_cyphal)
 ament_target_dependencies(
   headlights_node
+  libcxxcanard
   rclcpp
   std_srvs
 )
@@ -152,6 +117,7 @@ install(
 
 ament_export_dependencies(
   hardware_interface
+  libcxxcanard
   pluginlib
   rclcpp
   rclcpp_lifecycle
