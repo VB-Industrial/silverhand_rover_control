@@ -15,9 +15,9 @@ profiles:
     imu_pid: 16388
     imu_report_size: 64
   ros_control:
-    can_iface: can0
-    power_board_can_iface: can0
-    headlights_can_iface: can0
+    can_iface: vcan2.1
+    power_board_can_iface: vcan2.2
+    headlights_can_iface: vcan2.6
     node_id: 110
     queue_len: 1000
     use_imu_odometry: auto
