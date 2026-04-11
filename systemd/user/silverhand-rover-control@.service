@@ -1,7 +1,5 @@
 [Unit]
 Description=SilverHand rover control (%i)
-Wants=network-online.target
-After=network-online.target
 
 [Service]
 Type=simple

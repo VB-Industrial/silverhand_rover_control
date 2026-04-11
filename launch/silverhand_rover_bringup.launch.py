@@ -64,7 +64,14 @@ def _load_profile(profile_name: str):
     return profiles[profile_name]
 
 
-def _create_runtime_actions(context, robot_description, controllers_imu_file, controllers_wheel_file, ekf_config_file):
+def _create_runtime_actions(
+    context,
+    robot_description,
+    robot_description_topic,
+    controllers_imu_file,
+    controllers_wheel_file,
+    ekf_config_file,
+):
     use_mock_hardware = LaunchConfiguration("use_mock_hardware").perform(context)
     use_imu_odometry = LaunchConfiguration("use_imu_odometry").perform(context).lower()
     imu_device_path = LaunchConfiguration("imu_device_path").perform(context)
@@ -95,7 +102,10 @@ def _create_runtime_actions(context, robot_description, controllers_imu_file, co
             name="rover_controller_manager",
             output="screen",
             parameters=[robot_description, selected_controllers],
-            remappings=[("/controller_manager/robot_description", "/robot_description")],
+            remappings=[
+                ("/robot_description", robot_description_topic),
+                ("/controller_manager/robot_description", robot_description_topic),
+            ],
         ),
         Node(
             package="controller_manager",
@@ -146,6 +156,7 @@ def generate_launch_description():
     imu_pid = LaunchConfiguration("imu_pid")
     imu_report_size = LaunchConfiguration("imu_report_size")
     use_imu_odometry = LaunchConfiguration("use_imu_odometry")
+    robot_description_topic = "/rover/robot_description"
 
     description_file = PathJoinSubstitution(
         [FindPackageShare("silverhand_rover_control"), "urdf", "silverhand_rover.urdf.xacro"]
@@ -206,6 +217,7 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="screen",
         parameters=[robot_description],
+        remappings=[("/robot_description", robot_description_topic)],
     )
 
     return LaunchDescription(
@@ -270,6 +282,7 @@ def generate_launch_description():
                 function=lambda context: _create_runtime_actions(
                     context,
                     robot_description,
+                    robot_description_topic,
                     controllers_imu_file,
                     controllers_wheel_file,
                     ekf_config_file,
