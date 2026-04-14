@@ -1,18 +1,18 @@
 # silverhand_rover_control
 
-ROS 2 Jazzy package for the Silverhand rover control layer.
+Пакет ROS 2 Jazzy для слоя управления rover SilverHand.
 
-Package:
+Пакет:
 - `silverhand_rover_control`
 
-This repository intentionally contains only the lower and middle control layers:
+В этом репозитории намеренно оставлены только нижний и средний слои управления:
 - `ros2_control`
 - hardware interface
 - controller bringup
 
-Robot geometry, meshes, and base rover visuals live in `silverhand_rover_model`.
+Геометрия робота, меши и базовая визуализация rover живут в `silverhand_rover_model`.
 
-## Prerequisites
+## Требования
 
 ```bash
 sudo apt-get update
@@ -26,9 +26,9 @@ sudo apt-get install -y \
   ros-jazzy-xacro
 ```
 
-## Clone
+## Клонирование
 
-Clone the control stack into a workspace that already contains `libcxxcanard`:
+Клонируйте control-стек в workspace, где уже есть `libcxxcanard`:
 
 ```bash
 cd ~/silver_ws/src
@@ -36,39 +36,40 @@ git clone https://github.com/VB-Industrial/libcxxcanard.git
 git clone <silverhand_rover_control_repo_url>
 ```
 
-Clone the rover model next to it in the same workspace:
+Рядом в том же workspace клонируйте модель rover:
 
 ```bash
 cd ~/silver_ws/src
 git clone https://github.com/VB-Industrial/silverhand_rover_model.git
 ```
 
-The real Cyphal backend is expected at:
+Ожидаемый путь к реальной Cyphal-серверной части:
 
 ```bash
-/home/r/silver_ws/src/libcxxcanard
+~/silver_ws/src/libcxxcanard
 ```
 
-## Workspace Layout
+## Структура workspace
 
-Minimal shared workspace for bringup:
+Минимальный общий workspace для bringup:
 
 ```bash
-/home/r/silver_ws/src/silverhand_rover_model
-/home/r/silver_ws/src/libcxxcanard
-/home/r/silver_ws/src/silverhand_rover_control
+~/silver_ws/src/silverhand_rover_model
+~/silver_ws/src/libcxxcanard
+~/silver_ws/src/silverhand_rover_control
 ```
 
-Extended workspace:
+Расширенный workspace:
 
 ```bash
-/home/r/silver_ws/src/silverhand_ros2
-/home/r/silver_ws/src/libcxxcanard
-/home/r/silver_ws/src/silverhand_rover_control
-/home/r/silver_ws/src/silverhand_system_bringup
+~/silver_ws/src/silverhand_rover_model
+~/silver_ws/src/libcxxcanard
+~/silver_ws/src/silverhand_rover_control
+~/silver_ws/src/silverhand_system_bringup
+~/silver_ws/src/silverhand_system_description
 ```
 
-## Build
+## Сборка
 
 ```bash
 cd ~/silver_ws
@@ -79,18 +80,18 @@ colcon build --packages-up-to \
 source ~/silver_ws/install/setup.bash
 ```
 
-## Packages Check
+## Проверка пакетов
 
 ```bash
 ros2 pkg list | rg silverhand_rover
 ```
 
-Expected package from this repository:
+Ожидаемый пакет из этого репозитория:
 - `silverhand_rover_control`
 
-## Launch
+## Запуск
 
-Mock hardware:
+Mock-режим:
 
 ```bash
 ros2 launch silverhand_rover_control silverhand_rover_mock.launch.py
@@ -101,30 +102,30 @@ ros2 launch silverhand_rover_control silverhand_rover_mock.launch.py
 - `power_board_node` в mock-режиме без CAN/железа
 - mock `BatteryState` публикуется с периодом `50 ms` (`20 Hz`) по умолчанию
 
-Stub real hardware:
+Заглушка для реального железа:
 
 ```bash
 ros2 launch silverhand_rover_control silverhand_rover_real.launch.py can_iface:=vcan1 node_id:=110
 ```
 
-Real hardware with forced wheel odometry fallback:
+Реальное железо с принудительным fallback на wheel odometry:
 
 ```bash
 ros2 launch silverhand_rover_control silverhand_rover_real.launch.py \
   use_imu_odometry:=false
 ```
 
-Generic bringup:
+Универсальный bringup:
 
 ```bash
 ros2 launch silverhand_rover_control silverhand_rover_bringup.launch.py \
   use_mock_hardware:=true
 ```
 
-## Helper scripts
+## Вспомогательные скрипты
 
 ```bash
-cd /home/r/silver_ws/src/silverhand_rover_control
+cd ~/silver_ws/src/silverhand_rover_control
 ./scripts/start_rover_mock.sh
 ./scripts/start_rover_real.sh
 ```
@@ -139,14 +140,14 @@ cd /home/r/silver_ws/src/silverhand_rover_control
 
 ## systemd
 
-System service template:
+Шаблон systemd-сервиса:
 
 - `systemd/system/silverhand-rover-control@.service`
 
 Установка:
 
 ```bash
-sudo install -Dm644 /home/r/silver_ws/src/silverhand_rover_control/systemd/system/silverhand-rover-control@.service /etc/systemd/system/silverhand-rover-control@.service
+sudo install -Dm644 systemd/system/silverhand-rover-control@.service /etc/systemd/system/silverhand-rover-control@.service
 sudo systemctl daemon-reload
 ```
 
@@ -157,7 +158,7 @@ sudo systemctl enable --now silverhand-rover-control@mock.service
 sudo systemctl enable --now silverhand-rover-control@real.service
 ```
 
-Автозапуск без логина не нужен: system service стартует без user session.
+Автозапуск без логина не нужен: system-сервис стартует без пользовательской сессии.
 
 Логи:
 
@@ -165,7 +166,7 @@ sudo systemctl enable --now silverhand-rover-control@real.service
 journalctl -u silverhand-rover-control@mock.service -f
 ```
 
-## Parameters
+## Параметры
 
 - `use_mock_hardware`: use `mock_components/GenericSystem` for permanent debug bringup
 - `can_iface`: CAN or VCAN interface for the future Cyphal transport, default `vcan1`
@@ -176,16 +177,16 @@ journalctl -u silverhand-rover-control@mock.service -f
 - `power_board_node.use_mock`: publish synthetic battery data and accept headlights commands without Cyphal/CAN access
 - `power_board_node.mock_battery_*`: parameters for mock battery telemetry values and publish period
 
-## Power Board Timing
+## Тайминги power board
 
 - real `power_board_node`: Cyphal polling loop runs every `50 ms` (`20 Hz`)
 - real `power_board_node`: Cyphal heartbeat is emitted at approximately `1 Hz`
 - mock `power_board_node`: synthetic battery telemetry is published every `50 ms` (`20 Hz`) by default
 
-## Notes
+## Примечания
 
 - `silverhand_rover_control` does not duplicate the rover model. It includes `silverhand_rover_model/urdf/silverhand_rover.urdf.xacro` and appends the `ros2_control` block.
-- `libcxxcanard` is a separate workspace prerequisite and should be cloned into `~/silver_ws/src/libcxxcanard`.
-- The real hardware plugin now expects wheel motor commands on subjects `3000 + motor_id` and wheel feedback on subjects `3000 - motor_id`.
+- `libcxxcanard` - отдельная зависимость workspace, его следует клонировать в `~/silver_ws/src/libcxxcanard`.
+- Реальный аппаратный плагин теперь ожидает команды на моторы колес на subject'ах `3000 + motor_id`, а обратную связь - на `3000 - motor_id`.
 - `power_board_node` is a separate Cyphal-facing ROS node for battery telemetry and headlights, keeping power/HMI concerns outside `ros2_control`.
 - `diff_drive_controller` is used as the first integration step. A custom rover controller can replace it later without changing the package split.
