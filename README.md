@@ -139,35 +139,30 @@ cd /home/r/silver_ws/src/silverhand_rover_control
 
 ## systemd
 
-User-service template:
+System service template:
 
-- `systemd/user/silverhand-rover-control@.service`
+- `systemd/system/silverhand-rover-control@.service`
 
 Установка:
 
 ```bash
-mkdir -p ~/.config/systemd/user
-cp /home/r/silver_ws/src/silverhand_rover_control/systemd/user/silverhand-rover-control@.service ~/.config/systemd/user/
-systemctl --user daemon-reload
+sudo install -Dm644 /home/r/silver_ws/src/silverhand_rover_control/systemd/system/silverhand-rover-control@.service /etc/systemd/system/silverhand-rover-control@.service
+sudo systemctl daemon-reload
 ```
 
 Запуск:
 
 ```bash
-systemctl --user enable --now silverhand-rover-control@mock.service
-systemctl --user enable --now silverhand-rover-control@real.service
+sudo systemctl enable --now silverhand-rover-control@mock.service
+sudo systemctl enable --now silverhand-rover-control@real.service
 ```
 
-Автозапуск без логина:
-
-```bash
-loginctl enable-linger "$USER"
-```
+Автозапуск без логина не нужен: system service стартует без user session.
 
 Логи:
 
 ```bash
-journalctl --user -u silverhand-rover-control@mock.service -f
+journalctl -u silverhand-rover-control@mock.service -f
 ```
 
 ## Parameters
